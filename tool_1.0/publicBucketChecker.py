@@ -1,4 +1,5 @@
 import boto3
+import datetime
 from collections import defaultdict
 
 access_key = ''
@@ -12,6 +13,21 @@ GROUPS_TO_CHECK = {
 numBuckets = 0
 numPublicBuckets = 0
 
+def s3_untouched(s3_client, bucket_name):
+    last_activity = 'N/A'
+    object_list = s3_client.list_objects_v2(Bucket=bucket_name, FetchOwner=True)
+    if 'Contents' in object_list:
+        for object in object_list['Contents']:
+            if last_activity == 'N/A' or last_activity > object['LastModified']:
+                last_activity = object['LastModified']
+        if last_activity.date() < datetime.datetime.now().date():
+            print('Bucket Name:         ' + bucket_name)
+            print('Last active date:    ', end='')
+            print(last_activity.date())
+            days = datetime.datetime.now().date() - last_activity.date()
+            print('Inactive for:        ', end='')
+            print(days)
+
 
 def printWelcomeMessage():
     msg = 'Welcome to the Snow Cloud Program!' + '\n'
@@ -19,12 +35,12 @@ def printWelcomeMessage():
 
 
 def printNumBuckets():
-    msg = 'The TOTAL number of buckets is: ' + str(numBuckets)
+    msg = 'Total number of buckets:         ' + str(numBuckets)
     print(msg)
 
 
 def printNumPublicBuckets():
-    msg = 'The TOTAL number of PUBLIC buckets is: ' + str(numPublicBuckets)
+    msg = 'Total number of PUBLIC buckets:  ' + str(numPublicBuckets)
     print(msg)
 
 
@@ -76,6 +92,7 @@ keys = getCredentials()
 access_key = keys[0]
 secret_key = keys[1]
 
+
 s3 = boto3.resource("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 s3_client = boto3.client("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 
@@ -89,15 +106,19 @@ for bucket in buckets:
     public, grants = check_acl(bucket_acl)
     numBuckets += 1
 
+    msg = "Bucket:              {}".format(bucket.name)
+    print(msg)
+
     if public:
         if report_path:
-            msg = "Bucket {}: {}".format(bucket.name, "PUBLIC! VERY BAD! :(")
+            print('Security:            PUBLIC ! ! ! UNSECURE ! ! !')
             numPublicBuckets += 1
     else:
         if report_path:
-            msg = "Bucket {}: {}".format(bucket.name, "NOT PUBLIC! Good!")
-    print(msg)
-    print("Location: {}".format(location))
+            print('Security:            private :)')
+
+    print("Location:            {}".format(location))
+    s3_untouched(s3_client, bucket.name)
     print('')
 
 printNumBuckets()
