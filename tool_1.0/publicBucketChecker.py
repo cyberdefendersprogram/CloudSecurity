@@ -1,15 +1,8 @@
 import boto3
-# import os
-# import re
-# import sys
-# import warnings
-#
-# from datetime import datetime, timedelta
-# from os.path import expanduser
 from collections import defaultdict
 
-access_key = 'AKIAIK3TIWAEPAKQIZMA'
-secret_key = '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'
+access_key = ''
+secret_key = ''
 report_path = "/tmp/report.txt"
 
 GROUPS_TO_CHECK = {
@@ -29,9 +22,11 @@ def printNumBuckets():
     msg = 'The TOTAL number of buckets is: ' + str(numBuckets)
     print(msg)
 
+
 def printNumPublicBuckets():
     msg = 'The TOTAL number of PUBLIC buckets is: ' + str(numPublicBuckets)
     print(msg)
+
 
 def add_to_output(msg):
     print(msg)
@@ -74,6 +69,7 @@ def getCredentials():
 
 # Main Method
 
+
 printWelcomeMessage()
 
 keys = getCredentials()
@@ -92,7 +88,6 @@ for bucket in buckets:
     bucket_acl = bucket.Acl()
     public, grants = check_acl(bucket_acl)
     numBuckets += 1
-
 
     if public:
         if report_path:
