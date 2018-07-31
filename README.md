@@ -19,3 +19,4 @@ Current Features:
   * Verify Cloud trail logs
     * Try amazon macie
   * Make tool easy to run
+  * Counts number of files contained in each s3 bucket
