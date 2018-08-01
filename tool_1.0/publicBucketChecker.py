@@ -1,8 +1,9 @@
 import boto3
 from collections import defaultdict
 
-access_key = ''
-secret_key = ''
+access_key = '???'
+secret_key = '???'
+
 report_path = "/tmp/report.txt"
 
 GROUPS_TO_CHECK = {
@@ -62,10 +63,60 @@ def check_acl(acl):
 
 
 def getCredentials():
-    accessKey = input("AWS Access Key ID?: ")
-    secretKey = input("AWS Secret Access Key?: ")
-    print('')
-    return [accessKey, secretKey]
+    #if access_key == 0 & secret_key == 0:
+        accessKey = input("AWS Access Key ID?: ")
+        secretKey = input("AWS Secret Access Key?: ")
+        print('')
+        return [accessKey, secretKey]
+
+def listIAMusers():
+    client = boto3.client('iam', aws_access_key_id="???", aws_secret_access_key="???")
+    print("List of IAM users on your accounts: ")
+
+    users = client.list_users()
+    user_list = []
+    for key in users['Users']:
+        result = {}
+        Policies = []
+        Groups = []
+
+        result['userName'] = key['UserName']
+        List_of_Policies = client.list_user_policies(UserName=key['UserName'])
+
+        result['Policies'] = List_of_Policies['PolicyNames']
+
+        List_of_Groups = client.list_groups_for_user(UserName=key['UserName'])
+
+        for Group in List_of_Groups['Groups']:
+            Groups.append(Group['GroupName'])
+        result['Groups'] = Groups
+
+        List_of_MFA_Devices = client.list_mfa_devices(UserName=key['UserName'])
+
+        if not len(List_of_MFA_Devices['MFADevices']):
+            result['isMFADeviceConfigured'] = False
+        else:
+            result['isMFADeviceConfigured'] = True
+        user_list.append(result)
+
+    for key in user_list:
+        print(key)
+
+    #users = client.list_users()
+    #for key in users['Users']:
+        #print(key['UserName'])
+    #for key in users['Users']:
+        #List_of_Policies = client.list_user_policies(UserName=key['UserName'])
+        #for key in List_of_Policies['PolicyNames']:
+            #print(key['PolicyName'])
+def paginatorfunct():
+    # Create IAM client
+    iam = boto3.client('iam')
+
+    # List users with the pagination interface
+    paginator = iam.get_paginator('list_users')
+    for response in paginator.paginate():
+        print(response)
 
 # Main Method
 
@@ -73,8 +124,10 @@ def getCredentials():
 printWelcomeMessage()
 
 keys = getCredentials()
-access_key = keys[0]
-secret_key = keys[1]
+# access_key = keys[0]
+# secret_key = keys[1]
+access_key = '???'
+secret_key = '???'
 
 s3 = boto3.resource("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 s3_client = boto3.client("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
@@ -102,3 +155,7 @@ for bucket in buckets:
 
 printNumBuckets()
 printNumPublicBuckets()
+
+listIAMusers()
+
+paginatorfunct()
