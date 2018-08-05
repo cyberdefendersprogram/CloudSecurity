@@ -1,4 +1,6 @@
 import boto3
+import time
+import csv
 import datetime
 from collections import defaultdict
 
@@ -66,7 +68,7 @@ def s3_last_used(s3_client, bucket_name):
             if last_activity == 'N/A' or last_activity > object['LastModified']:
                 last_activity = object['LastModified']
         if last_activity.date() < datetime.datetime.now().date():
-            print('Bucket Name:         ' + bucket_name)
+
             print('Last active date:    ', end='')
             print(last_activity.date())
             days = datetime.datetime.now().date() - last_activity.date()
@@ -74,7 +76,51 @@ def s3_last_used(s3_client, bucket_name):
             print(days)
 
 
+def root_keys_active(credreport, index):
+    if (credreport[index]['access_key_1_active'] == 'true') or (credreport[index]['access_key_2_active'] == 'true'):
+        return True
+    else:
+        return False
+
+
+def get_cred_report():
+    x = 0
+    try:
+        while iam_client.generate_credential_report()['State'] != "COMPLETE":
+            time.sleep(2)
+            x += 1
+            # If no credential report is delivered within this time fail the check.
+            if x > 10:
+                return "Fail: rootUse - no CredentialReport available."
+
+        response = iam_client.get_credential_report()
+
+        report = []
+        reportText = response['Content'].decode("utf-8").splitlines()
+        if not reportText:
+            print('Failed')
+            return "Fail: Report is empty"
+        reader = csv.DictReader(reportText, delimiter=',')
+        for row in reader:
+            report.append(row)
+            # Verify if root key's never been used, if so add N/A
+        try:
+            if report[0]['access_key_1_last_used_date']:
+                pass
+        except:
+            report[0]['access_key_1_last_used_date'] = "N/A"
+        try:
+            if report[0]['access_key_2_last_used_date']:
+                pass
+        except:
+            report[0]['access_key_2_last_used_date'] = "N/A"
+        return report
+
+    except Exception as e:
+        return "Fail: Error retrieving data "+str(e)
+
 ##################[ MAIN ]##################
+
 
 GROUPS_TO_CHECK = {
     "http://acs.amazonaws.com/groups/global/AllUsers": "Everyone",
@@ -98,6 +144,8 @@ secret_key = keys[1]
 s3 = boto3.resource("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 # Provide credentials to boto3
 s3_client = boto3.client("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
+
+iam_client = boto3.client("iam", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 
 # Get all s3 buckets
 buckets = s3.buckets.all()
@@ -125,3 +173,48 @@ for bucket in buckets:
 
 print(printNumBuckets())
 print(printNumPublicBuckets())
+print('')
+
+################################# IAM ###################################
+
+print('IAM Report ----------------------------------------------------- \n')
+
+cred_report = get_cred_report()
+
+num_users = cred_report.__len__()
+print('The number of Users (Including the Root User) is: ',end='')
+print(str(num_users) + '\n')
+
+for i in range(0, num_users):
+    # User Name and Whether or not the Key is active
+    print('User' + str(i + 1) + ':       ', end='')
+
+    print(cred_report[i]['user'])
+
+    print('             Access Key Active?:     ', end='')
+    if root_keys_active(cred_report, i):
+        print('Active!')
+    else:
+        print('NOT Active.')
+
+    # Access Key Last used date
+
+    # Creation Date
+    creationTime = cred_report[i]['user_creation_time']
+    print('             User Creation Date:     ' + creationTime[:10])
+
+    # Password last used
+    passwordLastUsed = cred_report[i]['password_last_used']
+    print('             Password Last Used:     ' + passwordLastUsed[:10], end='')
+    if passwordLastUsed[9:10] == 'a':
+        print('tion')
+    else:
+        print('')
+    # mfa Active
+    print('             MFA Active:             ' + cred_report[i]['mfa_active'])
+    print('')
+
+if root_keys_active(cred_report, 0):
+    print('Root Access Keys Active ! ! !')
+else:
+    print('No Root Access Keys.')
