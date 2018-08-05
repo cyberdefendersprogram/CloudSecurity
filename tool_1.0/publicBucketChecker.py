@@ -103,5 +103,6 @@ for bucket in buckets:
     print(msg)
     print("Location: {} \n".format(location))
 
+
 print(printNumBuckets())
 print(printNumPublicBuckets())
