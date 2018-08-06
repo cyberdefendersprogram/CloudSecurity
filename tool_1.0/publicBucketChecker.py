@@ -135,7 +135,7 @@ def get_cred_report():
 host = "smtp.gmail.com"
 port = 587
 username = "cloudreport.sw@gmail.com"
-password = "" # It's a secret
+password = "onetwothree123" # It's a secret
 from_email = username
 to_list = ['']
 reply = ''
@@ -189,7 +189,7 @@ for bucket in buckets:
     else:
         printAndWrite('Security:            private :)', True)
 
-        printAndWrite("Location:            {}".format(location), True)
+    printAndWrite("Location:            {}".format(location), True)
     s3_last_used(s3_client, bucket.name)
     printAndWrite('', True)
 
