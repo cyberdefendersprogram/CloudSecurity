@@ -1,8 +1,8 @@
 import boto3
 from collections import defaultdict
 
-access_key = '???'
-secret_key = '???'
+access_key = 'AKIAIZX2IG3B4P7BQCWA'
+secret_key = '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'
 
 report_path = "/tmp/report.txt"
 
@@ -61,16 +61,23 @@ def check_acl(acl):
     public_indicator = True if dangerous_grants else False
     return public_indicator, dangerous_grants
 
-
+def parse_credential_file():
+    credential_file = input("Do you have a AWS Credentials file Downloaded? Please provide a file name if you do: ")
+    return credential_file
 def getCredentials():
-    #if access_key == 0 & secret_key == 0:
-        accessKey = input("AWS Access Key ID?: ")
-        secretKey = input("AWS Secret Access Key?: ")
-        print('')
-        return [accessKey, secretKey]
+    credential_file = input("Do you have a AWS Credentials file Downloaded? Please provide a file name if you do: ")
 
-def listIAMusers():
-    client = boto3.client('iam', aws_access_key_id="???", aws_secret_access_key="???")
+        #accessKey = input("AWS Access Key ID?: ")
+        #secretKey = input("AWS Secret Access Key?: ")
+        #print('')
+        #return [accessKey, secretKey]
+
+
+
+def listIAMusers(temp_access_storage, temp_secret_storage):
+    print("check")
+    temp = temp_access_storage, temp_secret_storage
+    client = boto3.client('iam', aws_access_key_id=temp[0], aws_secret_access_key=temp[1])
     print("List of IAM users on your accounts: ")
 
     users = client.list_users()
@@ -81,23 +88,23 @@ def listIAMusers():
         Groups = []
 
         result['userName'] = key['UserName']
-        List_of_Policies = client.list_user_policies(UserName=key['UserName'])
+        list_of_policies = client.list_user_policies(UserName=key['UserName'])
 
-        result['Policies'] = List_of_Policies['PolicyNames']
+        result['Policies'] = list_of_policies['PolicyNames']
 
-        List_of_Groups = client.list_groups_for_user(UserName=key['UserName'])
+        list_of_groups = client.list_groups_for_user(UserName=key['UserName'])
 
-        for Group in List_of_Groups['Groups']:
+        for Group in list_of_groups['Groups']:
             Groups.append(Group['GroupName'])
         result['Groups'] = Groups
 
-        List_of_MFA_Devices = client.list_mfa_devices(UserName=key['UserName'])
+        list_of_mfa_devices = client.list_mfa_devices(UserName=key['UserName'])
 
-        if not len(List_of_MFA_Devices['MFADevices']):
-            result['isMFADeviceConfigured'] = False
+        if not len(list_of_mfa_devices['MFADevices']):
+            result['MFA Configured'] = False
         else:
-            result['isMFADeviceConfigured'] = True
-        user_list.append(result)
+            result['MFA Configured'] = True
+            user_list.append(result)
 
     for key in user_list:
         print(key)
@@ -106,8 +113,8 @@ def listIAMusers():
     #for key in users['Users']:
         #print(key['UserName'])
     #for key in users['Users']:
-        #List_of_Policies = client.list_user_policies(UserName=key['UserName'])
-        #for key in List_of_Policies['PolicyNames']:
+        #list_of_policies = client.list_user_policies(UserName=key['UserName'])
+        #for key in list_of_policies['PolicyNames']:
             #print(key['PolicyName'])
 def paginatorfunct():
     # Create IAM client
@@ -118,6 +125,33 @@ def paginatorfunct():
     for response in paginator.paginate():
         print(response)
 
+def file_reader_funct(access_key,secret_key):
+    import csv
+
+    with open('credentials.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            if line_count == 0:
+                print(f'\t Columns: {" || ".join(row)}')
+                line_count += 1
+                print(line_count)
+            else:
+                print(f'\n  Rows:\n \t Username: {row[0]} \n \t Password: {row[1]} \n \t Access-Key: {row[2]} '
+                      f'\n \t Secret_access_key: {row[3]} \n \t Console-Link - {row[4]}.')
+
+                # temp_user_storage = row[0], temp_pass_storage = row[1],
+                temp_access_storage = row[2]
+                temp_secret_storage = row[3]
+
+                 access_key = temp_access_storage
+
+                return [temp_access_storage, temp_secret_storage]
+
+                line_count += 1
+                print(f'Processed {line_count} lines.')
+
+
 # Main Method
 
 
@@ -126,8 +160,8 @@ printWelcomeMessage()
 keys = getCredentials()
 # access_key = keys[0]
 # secret_key = keys[1]
-access_key = '???'
-secret_key = '???'
+access_key = 'AKIAIZX2IG3B4P7BQCWA'
+secret_key = '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'
 
 s3 = boto3.resource("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 s3_client = boto3.client("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
@@ -156,6 +190,7 @@ for bucket in buckets:
 printNumBuckets()
 printNumPublicBuckets()
 
-listIAMusers()
 
-paginatorfunct()
+#paginatorfunct()
+file_reader_funct(access_key,secret_key)
+listIAMusers(access_key, secret_key)
