@@ -1,71 +1,70 @@
 
-|*||*||*||*||*| Welcome to the Snow Cloud S3 Bucket Checker |*||*||*||*||*|
+|*||*||*||*||*| Welcome to the Snow Cloud AWS Checker |*||*||*||*||*|
 
 
-–––––––––––––––– Scannning.... ––––––––––––––––
+–––––––––––––––– Scannning S3.... ––––––––––––––––
 
 Bucket:              hackthisbucket
 Security:            PUBLIC ! ! ! UNSECURE ! ! !
 Location:            us-west-1
 Last active date:    2018-07-20
-Inactive for:        17 days, 0:00:00
+Inactive for:        17 days
 
 Bucket:              privatesnowwhitebucket
 Security:            private :)
 Location:            us-east-2
 Last active date:    2018-07-26
-Inactive for:        11 days, 0:00:00
+Inactive for:        11 days
 
 Bucket:              snowwhitebucket
 Security:            PUBLIC ! ! ! UNSECURE ! ! !
 Location:            us-west-1
 Last active date:    2018-07-19
-Inactive for:        18 days, 0:00:00
+Inactive for:        18 days
 
 Bucket:              snowwhitebuckettrail
 Security:            private :)
 Location:            us-east-2
 Last active date:    2018-07-30
-Inactive for:        7 days, 0:00:00
+Inactive for:        7 days
 
 The total number of buckets:         4
 The total number of PUBLIC buckets:  2
 
 
-IAM Report ----------------------------------------------------- 
+- - - - - - - - - - IAM Report - - - - - - - - - - 
 
 The number of Users (Including the Root User) is: 5
 
-User1:       <root_account>
+User 1:      <root_account>
              Access Key Active?:     NOT Active.
              User Creation Date:     2018-07-18
              Password Last Used:     2018-08-05
              MFA Active:             false
 
-User2:       asdlkkaskld
+User 2:      asdlkkaskld
              Access Key Active?:     Active!
              User Creation Date:     2018-08-05
              Password Last Used:     no_information
              MFA Active:             false
 
-User3:       snowwhiteuser
+User 3:      snowwhiteuser
              Access Key Active?:     Active!
              User Creation Date:     2018-07-31
              Password Last Used:     no_information
              MFA Active:             false
 
-User4:       testuser
+User 4:      testuser
              Access Key Active?:     NOT Active.
              User Creation Date:     2018-08-01
              Password Last Used:     no_information
              MFA Active:             false
 
-User5:       user3
+User 5:      user3
              Access Key Active?:     Active!
              User Creation Date:     2018-08-02
              Password Last Used:     no_information
              MFA Active:             false
-
 
 No Root Access Keys.
 

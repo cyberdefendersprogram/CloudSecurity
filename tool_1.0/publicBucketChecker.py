@@ -16,7 +16,7 @@ def printAndWrite(msg_to_print, line_down):
         f.write('\n')
 
 def printWelcomeMessage():
-    msg = '\n' + '|*||*||*||*||*| Welcome to the Snow Cloud S3 Bucket Checker |*||*||*||*||*|' + '\n'
+    msg = '\n' + '|*||*||*||*||*| Welcome to the Snow Cloud AWS Checker |*||*||*||*||*|' + '\n'
     return msg
 
 
@@ -84,7 +84,12 @@ def s3_last_used(s3_client, bucket_name):
             printAndWrite(str(last_activity.date()), True)
             days = datetime.datetime.now().date() - last_activity.date()
             printAndWrite('Inactive for:        ', False)
-            printAndWrite(str(days), True)
+            days_str = str(days)
+            if days_str[5:6] == 's':
+                days_str = days_str[:6]
+            else:
+                days_str = days_str[:7]
+            printAndWrite(str(days_str), True)
 
 
 def root_keys_active(credreport, index):
@@ -135,13 +140,12 @@ def get_cred_report():
 host = "smtp.gmail.com"
 port = 587
 username = "cloudreport.sw@gmail.com"
-password = "onetwothree123" # It's a secret
+password = "onetwothree123"  # It's a secret
 from_email = username
 to_list = ['']
 reply = ''
 
 f = open("report.txt", "w+")
-
 
 GROUPS_TO_CHECK = {
     "http://acs.amazonaws.com/groups/global/AllUsers": "Everyone",
@@ -157,10 +161,9 @@ printAndWrite(printWelcomeMessage(), True)
 
 # Get credentials to access s3 account
 keys = getCredentials()
-printAndWrite('\n' + '–––––––––––––––– Scannning.... ––––––––––––––––' + '\n', True)
+printAndWrite('\n' + '–––––––––––––––– Scannning S3.... ––––––––––––––––' + '\n', True)
 access_key = keys[0]
 secret_key = keys[1]
-
 
 # Define S3 as the AWS service that we are goign to use
 s3 = boto3.resource("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
@@ -199,7 +202,7 @@ printAndWrite('', True)
 
 ################################# IAM ###################################
 
-printAndWrite('IAM Report ----------------------------------------------------- \n', True)
+printAndWrite('- - - - - - - - - - IAM Report - - - - - - - - - - \n', True)
 
 cred_report = get_cred_report()
 
@@ -209,7 +212,7 @@ printAndWrite(str(num_users) + '\n', True)
 
 for i in range(0, num_users):
     # User Name and Whether or not the Key is active
-    printAndWrite('User' + str(i + 1) + ':       ', False)
+    printAndWrite('User ' + str(i + 1) + ':      ', False)
 
     printAndWrite(cred_report[i]['user'], True)
 
@@ -237,12 +240,10 @@ for i in range(0, num_users):
     printAndWrite('             MFA Active:             ' + cred_report[i]['mfa_active'], True)
     printAndWrite('', True)
 
-printAndWrite('', True)
 if root_keys_active(cred_report, 0):
     printAndWrite('Root Access Keys Active ! ! !', True)
 else:
     printAndWrite('No Root Access Keys.', True)
-
 
 # Email Portion of tool
 
@@ -272,23 +273,9 @@ if ans.__len__() > 0:
             the_msg["From"] = from_email
             # the_msg["To"] = to_list
 
-
-            html_txt = """\
-            <html>
-                <head></head>
-                <body>
-                    <p>Hey!<br>
-                        Testing this email <b>message</b>. Made by <a href='http://joincfe.com'>Team CFE</a>.
-                    </p>
-                </body>
-            </html>
-            """
-
             part_1 = MIMEText(plain_txt, 'plain')
-            part_2 = MIMEText(html_txt, "html")
 
             the_msg.attach(part_1)
-            # the_msg.attach(part_2)
 
             email_conn.sendmail(from_email, to_list, the_msg.as_string())
             email_conn.quit()
