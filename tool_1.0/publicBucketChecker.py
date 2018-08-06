@@ -1,8 +1,8 @@
 import boto3
 from collections import defaultdict
 
-access_key = 'AKIAIZX2IG3B4P7BQCWA'
-secret_key = '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'
+access_key = '???'
+secret_key = '!!!'
 
 report_path = "/tmp/report.txt"
 
@@ -160,8 +160,8 @@ printWelcomeMessage()
 keys = getCredentials()
 # access_key = keys[0]
 # secret_key = keys[1]
-access_key = 'AKIAIZX2IG3B4P7BQCWA'
-secret_key = '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'
+access_key = '???'
+secret_key = '!!!'
 
 s3 = boto3.resource("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 s3_client = boto3.client("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
