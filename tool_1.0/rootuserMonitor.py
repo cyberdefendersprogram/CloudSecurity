@@ -91,8 +91,10 @@ def getIPaddresses(events):
 		item = item.replace('"', '')
 		item = item.replace(':', '')
 
-		ip_lst.append(item)
-		# ip_lst = ['str', 'str']
+		# this is just a bandaid
+		if item != '..':
+			ip_lst.append(item)
+			# ip_lst = ['str', 'str']
 
 	return ip_lst
 

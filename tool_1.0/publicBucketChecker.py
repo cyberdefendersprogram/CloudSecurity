@@ -15,7 +15,7 @@ def printNumBuckets():
 
 
 def printNumPublicBuckets():
-	# @!!!!! maybe can can add a message why they need to be carefule with public bucket 
+    # @!!!!! maybe can can add a message why they need to be carefule with public bucket 
     msg = 'The total number of PUBLIC buckets: ' + str(numPublicBuckets) + '\n'
     return msg
 
