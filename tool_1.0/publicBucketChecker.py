@@ -135,7 +135,7 @@ def get_cred_report():
 host = "smtp.gmail.com"
 port = 587
 username = "cloudreport.sw@gmail.com"
-password = "onetwothree123"
+password = "" # It's a secret
 from_email = username
 to_list = ['']
 reply = ''
@@ -158,10 +158,9 @@ printAndWrite(printWelcomeMessage(), True)
 # Get credentials to access s3 account
 keys = getCredentials()
 printAndWrite('\n' + '–––––––––––––––– Scannning.... ––––––––––––––––' + '\n', True)
-# access_key = keys[0]
-# secret_key = keys[1]
-access_key = 'AKIAIR5V2QX6OEJWZOHQ'
-secret_key = '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'
+access_key = keys[0]
+secret_key = keys[1]
+
 
 # Define S3 as the AWS service that we are goign to use
 s3 = boto3.resource("s3", aws_access_key_id=access_key, aws_secret_access_key=secret_key)
