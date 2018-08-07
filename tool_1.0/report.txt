@@ -66,5 +66,7 @@ User 5:      user3
              Password Last Used:     no_information
              MFA Active:             false
 
+# # # # # # # # # # SUMMARY # # # # # # # # # #
+
 No Root Access Keys.
 
