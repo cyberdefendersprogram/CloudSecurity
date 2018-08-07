@@ -28,8 +28,8 @@ Location:            us-east-2
 Last active date:    2018-07-30
 Inactive for:        7 days
 
-The total number of buckets:         4
 The total number of PUBLIC buckets:  2
+The total number of buckets:         4
 
 
 - - - - - - - - - - IAM Report - - - - - - - - - - 
@@ -65,6 +65,7 @@ User 5:      user3
              User Creation Date:     2018-08-02
              Password Last Used:     no_information
              MFA Active:             false
+
 
 # # # # # # # # # # SUMMARY # # # # # # # # # #
 

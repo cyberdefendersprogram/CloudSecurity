@@ -210,9 +210,9 @@ for bucket in buckets:
     printAndWrite('', True)
 
 # Prints total number of buckets and the total number of public buckets
+printAndWrite(printNumPublicBuckets(), False)
 printAndWrite(printNumBuckets(), True)
-printAndWrite(printNumPublicBuckets(), True)
-printAndWrite('', True)
+printAndWrite('\n', True)
 
 ################################# IAM ###################################
 
@@ -260,6 +260,8 @@ for i in range(0, num_users):
     # mfa Active
     printAndWrite('             MFA Active:             ' + cred_report[i]['mfa_active'], True)
     printAndWrite('', True)
+
+printAndWrite('', True)
 
 printAndWrite('# # # # # # # # # # SUMMARY # # # # # # # # # #', True)
 printAndWrite('', True)
