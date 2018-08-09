@@ -45,8 +45,8 @@ if __name__ == "__main__":
 	iam_client = boto3.client("iam", aws_access_key_id = ACCESS_KEY, aws_secret_access_key = SECRET_KEY)
 
 
-	welcomeMsg = '\n' + '|*||*||*||*||*| Welcome to the Snow Cloud S3 Bucket Checker |*||*||*||*||*|' + '\n'
-	thankyouMsg = 'Thank you for using our snow white program!'
+	welcomeMsg = '\n' + '|*||*||*||*||*| Welcome to the Cloud Checker |*||*||*||*||*|' + '\n'
+	thankyouMsg = 'Thank you for using our Cloud Checker program!'
 
 	f = open("report.txt", "w+")
 
@@ -69,63 +69,3 @@ if __name__ == "__main__":
 	printAndWrite(thankyouMsg, True)
 	print ("")
 	print ("")
-
-
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # Get all s3 buckets 
-# buckets = s3.buckets.all()
-
-# # Get info of each bucket
-# for bucket in buckets:
-#     # get location of bucket 
-#     location = get_location(bucket.name, s3_client)
-#     # retrieve the policy grant info
-#     bucket_acl = bucket.Acl()
-#     public = check_acl(bucket_acl)
-#     numBuckets += 1
-
-#     # render message
-#     msg = "Bucket:              {}".format(bucket.name)
-#     printAndWrite(msg, True)
-
-#     if public:
-#         printAndWrite('Security:            PUBLIC ! ! ! UNSECURE ! ! !', True)
-#         numPublicBuckets += 1
-#     else:
-#         printAndWrite('Security:            private :)', True)
-    
-#     printAndWrite("Location:            {}".format(location), True)
-#     s3_last_used(s3_client, bucket.name)
-#     printAndWrite('', True)
-
-
-# # Prints total number of buckets and the total number of public buckets
-# printAndWrite(printNumPublicBuckets(), False)
-# printAndWrite(printNumBuckets(), True)
-# printAndWrite('\n', True)

@@ -60,11 +60,11 @@ def get_cred_report(iam_client):
 def main(iam_client):
     # Retrieve credit report
     cred_report = get_cred_report(iam_client)
-    # print (cred_report)
+    print (cred_report[0])
 
     num_users = cred_report.__len__()
     print('The number of Users (Including the Root User) is: ', str(num_users) + '\n')
-    
+
     # Loop through all of the IAM Users and print out
     # 1. User name
     # 2. Access Key Active or not
@@ -73,12 +73,11 @@ def main(iam_client):
     # 5. MFA Active or not
     for i in range(0, num_users):
         # User Name and Whether or not the Key is active
-        print('User ' + str(i + 1) + ':      ')
+        print('User ' + str(i + 1) + ':      ', end='')
 
-        print(cred_report[i]['user'])
-        # print(cred_report[i])
+        print('             arn:                    ' + str(cred_report[i]['arn']))
 
-        # print('             Access Key Active?:     ') 
+        # print('             Access Key Active?:     ')
         if root_keys_active(cred_report, i):
             print('             Access Key Active?:     '+'Active!')
         else:
@@ -92,11 +91,14 @@ def main(iam_client):
 
         # Password last used
         passwordLastUsed = cred_report[i]['password_last_used']
-        print('             Password Last Used:     ' + passwordLastUsed[:10])
-        # if passwordLastUsed[9:10] == 'a':
-        #     print('tion')
-        # else:
-        #     print('')
+        print('             Password Last Used:     ', end='')
+        if passwordLastUsed[9:10] == 'a':
+            print('No Information')
+        else:
+            print(passwordLastUsed[:10])
+
+        print('             Key 1 Last Service:     ' + cred_report[i]['access_key_1_last_used_service'])
+        print('             Key 2 Last Service:     ' + cred_report[i]['access_key_2_last_used_service'])
 
         # mfa Active
         print('             MFA Active:             ' + cred_report[i]['mfa_active'])
