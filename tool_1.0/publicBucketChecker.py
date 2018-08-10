@@ -1,12 +1,10 @@
 import boto3
 from collections import defaultdict
+import time
+import datetime
 
 
 ##################[ METHODS ]##################
-
-def printWelcomeMessage():
-    msg = '\n' + '|*||*||*||*||*| Welcome to the Snow Cloud S3 Bucket Checker |*||*||*||*||*|' + '\n'
-    return msg
 
 
 def printNumBuckets(): 
@@ -18,12 +16,6 @@ def printNumPublicBuckets():
     # @!!!!! maybe can can add a message why they need to be carefule with public bucket 
     msg = 'The total number of PUBLIC buckets: ' + str(numPublicBuckets) + '\n'
     return msg
-
-
-def getCredentials():
-    accessKey = input("AWS Access Key ID?: ")
-    secretKey = input("AWS Secret Access Key?: ")
-    return [accessKey, secretKey]
 
 
 def get_location(bucket_name, s3_client):
@@ -40,7 +32,7 @@ def get_location(bucket_name, s3_client):
     return loc
 
 
-def check_acl(acl):
+def check_acl(acl, group):
     """
     Checks if the Access Control List is public.
     - INPUT: Acl instance
@@ -50,7 +42,7 @@ def check_acl(acl):
     
     for grant in acl.grants:
         grantee = grant["Grantee"]
-        if grantee["Type"] == "Group" and grantee["URI"] in GROUPS_TO_CHECK:
+        if grantee["Type"] == "Group" and grantee["URI"] in group:
             dangerous_grants[grantee["URI"]].append(grant["Permission"])
     
     is_public = True if dangerous_grants else False 
@@ -58,51 +50,57 @@ def check_acl(acl):
     return is_public
 
 
-##################[ MAIN ]##################
-
-GROUPS_TO_CHECK = {
-    "http://acs.amazonaws.com/groups/global/AllUsers": "Everyone",
-    "http://acs.amazonaws.com/groups/global/AuthenticatedUsers": "Authenticated AWS users"
-}
-
-numBuckets = 0
-numPublicBuckets = 0
-
-# Start with welcome message 
-print(printWelcomeMessage())
-
-# Get credentials to access s3 account
-keys = getCredentials()
-print('\n' + '–––––––––––––––– Scannning.... ––––––––––––––––' + '\n')
-access_key = keys[0]
-secret_key = keys[1]
-
-# Define S3 as the AWS service that we are goign to use
-s3 = boto3.resource("s3", aws_access_key_id = access_key, aws_secret_access_key = secret_key)
-# Provide credentials to boto3
-s3_client = boto3.client("s3", aws_access_key_id = access_key, aws_secret_access_key = secret_key)
-
-# Get all s3 buckets 
-buckets = s3.buckets.all()
-
-# Get info of each bucket
-for bucket in buckets:
-    # get location of bucket 
-    location = get_location(bucket.name, s3_client)
-    # retrieve the policy grant info
-    bucket_acl = bucket.Acl()
-    public = check_acl(bucket_acl)
-    numBuckets += 1
-
-    # render message
-    if public:
-        msg = "Bucket {}: {}".format(bucket.name, "PUBLIC! VERY BAD! :(")
-        numPublicBuckets += 1
-    else:
-        msg = "Bucket {}: {}".format(bucket.name, "NOT PUBLIC! Good!")
-    print(msg)
-    print("Location: {} \n".format(location))
+# Prints the last activity date and how many days the the s3 bucket has been inactive for
+# Input: s3_client: s3 instance, bucket_name: name of s3 bucket in AWS
+def s3_last_used(s3_client, bucket_name):
+    last_activity = 'N/A'
+    object_list = s3_client.list_objects_v2(Bucket=bucket_name, FetchOwner=True)
+    if 'Contents' in object_list:
+        for object in object_list['Contents']:
+            if last_activity == 'N/A' or last_activity > object['LastModified']:
+                last_activity = object['LastModified']
+        if last_activity.date() < datetime.datetime.now().date():
+            print('Last active date:    ', end='')
+            print(str(last_activity.date()))
+            days = datetime.datetime.now().date() - last_activity.date()
+            print('Inactive for:        ', end='')
+            days_str = str(days)
+            if days_str[5:6] == 's':
+                days_str = days_str[:6]
+            else:
+                days_str = days_str[:7]
+            print(str(days_str))
+            print('')
 
 
-print(printNumBuckets())
-print(printNumPublicBuckets())
+def main(s3, client, group):
+    numBuckets = 0
+    numPublicBuckets = 0
+
+    # Get all s3 buckets 
+    buckets = s3.buckets.all()
+
+    # Get info of each bucket
+    for bucket in buckets:
+        # get location of bucket 
+        location = get_location(bucket.name, client)
+        # retrieve the policy grant info
+        bucket_acl = bucket.Acl()
+        public = check_acl(bucket_acl, group)
+        numBuckets += 1
+
+        # render message
+        msg = "Bucket:              {}".format(bucket.name)
+        print(msg)
+
+        if public:
+            print('Security:            PUBLIC ! ! ! UNSECURE ! ! !')
+            numPublicBuckets += 1
+        else:
+            print('Security:            private :)')
+        print("Location:            {}".format(location))
+
+        s3_last_used(client, bucket.name)
+
+    print('The total number of PUBLIC buckets:  ', numPublicBuckets)
+    print('The total number of buckets:         ', numBuckets)

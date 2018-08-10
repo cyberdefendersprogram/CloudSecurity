@@ -3,14 +3,8 @@ from string import *
 from ipwhois import IPWhois
 import warnings
 
-##################[ METHODS ]##################
 
-def getCredentials():
-	accessKey = input("AWS Access Key ID?: ")
-	secretKey = input("AWS Secret Access Key?: ")
-	return [accessKey, secretKey]
-
-def getEvents():
+def getEvents(client):
 	"""
 	Looks up API activity events captured by CloudTrail in AWS account.
 	– OUTPUT: Events(list)
@@ -18,7 +12,7 @@ def getEvents():
 	
 	# rootuserEvent is a dictionary with  a key "Events" and a list as a value
 	# the list has many subset of dictionaries for each event.
-	rootuserEvent = cloudtrail_client.lookup_events(
+	rootuserEvent = client.lookup_events(
 		LookupAttributes = [
 			{
 				'AttributeKey': 'Username',
@@ -81,8 +75,7 @@ def getIPaddresses(events):
 	ips_lst = []
 
 	for key in ips_dict:
-		ips_lst.append(key)
-		# ips_lst = ['"sourceIPAddress":"str"', '"sourceIPAddress":"str"']
+		ips_lst.append(key) # ips_lst = ['"sourceIPAddress":"str"', '"sourceIPAddress":"str"']
 
 	ip_lst = []
 	for item in ips_lst:
@@ -91,10 +84,9 @@ def getIPaddresses(events):
 		item = item.replace('"', '')
 		item = item.replace(':', '')
 
-		# this is just a bandaid
+		# this is a bandaid
 		if item != '..':
-			ip_lst.append(item)
-			# ip_lst = ['str', 'str']
+			ip_lst.append(item) # ip_lst = ['str', 'str']
 
 	return ip_lst
 
@@ -113,67 +105,48 @@ def lookupDomainName(ipaddrs):
 	return ipInfo
 
 
-##################[ MAIN ]##################
-
-if __name__ == "__main__":
-	# Get credentials to access s3 account
-	keys = getCredentials()
-	print('\n' + '–––––––––––––––– Scannning.... ––––––––––––––––' + '\n')
-	access_key = keys[0]
-	secret_key = keys[1]
+def getRootUserReport(events ,msg):
+	print (" –––– WARNING!! Activities with root user detected! –––– \n")
 	
-	# Define S3 as the AWS service that we are goign to use
-	s3 = boto3.resource("s3", aws_access_key_id = access_key, aws_secret_access_key = secret_key)
-	# Provide credentials to boto3
-	cloudtrail_client = boto3.client('cloudtrail')
+	# Show the last time the activity with root user happened 
+	print ("Last activity:\n\n", "   - ", getActivitiesDatetime(events), '\n')
+	
+	# Show types of activities 
+	print ("Activity types:\n")
+	for i in getActivities(events):
+		print ("    - ", i)
+	
+	# Check where the access was happened using ip address 
+	print ("\nThe root user access was attempted from:\n")
+	ips = getIPaddresses(events) # ['str', 'str']
+	print ("ips: ", ips)
 
-	# store events from CloudTrail associated with root-user
-	eventList = getEvents()
+	for ip in ips:
+		result = lookupDomainName(ip)
 
-	# rendering messages
+		description = []
+		for i in range(len(result['nets'])):
+			description.append(result['nets'][i]['description'])
+
+			print (ip, description)
+
+	print (msg)
+
+
+def main(events):
+
+	# Rendering messages
 	rootuserWarningMsg = "\nAWS encourages users not to use root user credentials to access AWS.\n" \
 						 "Instead, create an IAM user. Check: \n" \
 						 "\n    https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html\n"\
 						 "\nfor more information.\n"
+	 
+	# Store events from CloudTrail associated with root-user
+	eventList = getEvents(events)
 
-	# steps to take if there is activities detected with root-user
-	if isRootuser:
-		print ("\n –––– WARNING!! Activities with root user detected! –––– \n")
-		
-		# Show the last time the activity with root user happened 
-		print ("Last activity:\n\n", "   - ", getActivitiesDatetime(eventList), '\n')
-		
-		# Show types of activities 
-		print ("Activity types:\n")
-		for i in getActivities(eventList):
-			print ("    - ", i)
-		
-		# Check where the access was happened using ip address 
-		print ("\nThe root user access was attempted from:\n")
-		ips = getIPaddresses(eventList) # ['str', 'str']
-		print ("ips: ", ips)
+	# Steps to take if there is activities detected with root-user
+	if isRootuser(eventList):
+		getRootUserReport(eventList, rootuserWarningMsg)
 
-		for ip in ips:
-			result = lookupDomainName(ip)
-
-			description = []
-			for i in range(len(result['nets'])):
-				description.append(result['nets'][i]['description'])
-
-				print (ip, description)
-
-		print (rootuserWarningMsg)
-	
 	else:
 		print ("No root user related activities were found from past 90 days.")
-
-
-
-
-
-
-##################[ TEST ZONE ]##################
-
-
-# [NOTE]: add these features
-#### listing all IAM users and their activities 
