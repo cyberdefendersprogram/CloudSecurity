@@ -73,8 +73,9 @@ def main(iam_client):
     for i in range(0, num_users):
         # User Name and Whether or not the Key is active
         print('User ' + str(i + 1) + ':      ', end='')
+        print(cred_report[i]['user'])
 
-        print('arn:                    ' + str(cred_report[i]['arn']))
+        print('             arn:                    ' + str(cred_report[i]['arn']))
 
         # print('             Access Key Active?:     ')
         if root_keys_active(cred_report, i):
