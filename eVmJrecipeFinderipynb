@@ -1,0 +1,349 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "VxuXAV9I8DeK"
+      },
+      "outputs": [],
+      "source": [
+        "import collections\n",
+        "import requests\n",
+        "import re"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "url = 'https://www.allrecipes.com/recipes-a-z-6735880'\n",
+        "source_req = requests.get(url)              #gives a url to requests.get()\n",
+        "code = source_req.text                      #takes source_req and turn it into a string of text\n",
+        "words = re.findall(r\"[0-9a-zA-Z-']+\",code)  #pulls all words out of code variable"
+      ],
+      "metadata": {
+        "id": "250w2wEQaA_o"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "file_name = 'recipes_data/allrecipes.html' #creates variable for destination of file"
+      ],
+      "metadata": {
+        "id": "y213-pUwc3W7"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "with open(file_name, 'w') as file:\n",
+        "  file.write(code)\n",
+        "\n",
+        "\n",
+        "with open(file_name, 'r') as file:\n",
+        "  info = file.read()"
+      ],
+      "metadata": {
+        "id": "dctVdp4vRPMu"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def url_finder(source):\n",
+        "  ''' Takes in a websites source code,\n",
+        "      Loops through the source code,\n",
+        "      Finds where urls start and end within source code,\n",
+        "      Appends urls to a list'''\n",
+        "  url_list = []   #creates empty list\n",
+        "  while True:  #infinite loop\n",
+        "      if ('href=\"' not in source):  #goes through all source code looking for string\n",
+        "          break  #stops function when specified string is not found\n",
+        "      start = source.find('href=\"') + len('href=\"')  #establishes start of urls\n",
+        "      end = source.find('\"',start)  #establishes end of urls\n",
+        "      url = source[start:end]\n",
+        "      url_list.append(url)   #appends found urls into list\n",
+        "      source = source[end:] #sets source to end: evrything left, goes back to if\n",
+        "  return url_list"
+      ],
+      "metadata": {
+        "id": "GBCwNFH4e88_"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#url_finder(info)"
+      ],
+      "metadata": {
+        "id": "v2T8-VntfM6C"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def recipe_finder(f):\n",
+        "  '''Takes in a keyword string,\n",
+        "    Searches through items in list made from url_code function,\n",
+        "    Appends urls containing keyword into a new list'''\n",
+        "  recipe_list = url_finder(info) #creates list fron url_finder\n",
+        "  recipe_link_list = []\n",
+        "  for i in recipe_list:\n",
+        "    if (f in i):     #if argument(f) is in any item within recipe_list\n",
+        "      recipe_link_list.append(i)  #appends i after making sure f is in it\n",
+        "  return recipe_link_list"
+      ],
+      "metadata": {
+        "id": "dR5SwFoN_1Zr"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def duplicate_remover(n):\n",
+        "  '''Removes duplicate items from list created in recipe_finder'''\n",
+        "  recipe_list = recipe_finder(n)  #calls recipe_finder function to create list\n",
+        "  no_duplicates = []\n",
+        "  for i in recipe_list:\n",
+        "    if (i not in no_duplicates):\n",
+        "      no_duplicates.append(i) #takes item from recipe_list if it isnt in no_duplicates\n",
+        "  return no_duplicates\n"
+      ],
+      "metadata": {
+        "id": "DZd5NF7OX2t2"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#duplicate_remover('chicken')"
+      ],
+      "metadata": {
+        "id": "KC7tmE5OgFoL"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def extract_dish_name(n):\n",
+        "  '''Takes argument and searches through urls in duplicate_remover list\n",
+        "  extracts dish names from url based on argument'''\n",
+        "  dish_names = []\n",
+        "  dish_list = duplicate_remover(n) #creates a list from duplicate_remover\n",
+        "  for url in dish_list:\n",
+        "    parts = url.split('/') #splits items in dish_list based on, /\n",
+        "    url_end = parts[-2] #takes parts and extracts second to last part of url\n",
+        "    dish_names.append(url_end)\n",
+        "  return dish_names\n",
+        "\n",
+        "\n",
+        "#Per professor reccomendation,\n",
+        "#got a little help from ChatGPT on how to split each url in the list\n"
+      ],
+      "metadata": {
+        "id": "wab_w4pueboC"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#extract_dish_name('beef')"
+      ],
+      "metadata": {
+        "id": "8LhYe9nIQ6dD"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def meal_dict():\n",
+        "  '''Takes in a ingredient, or special occassion\n",
+        "  Return a dictionary with recipe name for keys\n",
+        "  and corresponding urls for values'''\n",
+        "  print('Welcome to the Recipe Finder!')\n",
+        "  print('Please enter a ingrdient you would like to have in your meal')\n",
+        "  print('You may also enter a special occasion, such as Christmas, for example')\n",
+        "  n = input('What would you like to cook with? ')\n",
+        "  list1 = duplicate_remover(n)  #creates list from duplicate_remover\n",
+        "  list2 = extract_dish_name(n)  #creates list from extract_dish_names\n",
+        "  food_dict = dict(zip(list2,list1))  #zips two lists together into dictionary\n",
+        "  if (n not in food_dict):\n",
+        "    print('I cant find recipes for that')\n",
+        "  else:\n",
+        "    print(f'Here are some recipes including {n}')\n",
+        "  return food_dict\n"
+      ],
+      "metadata": {
+        "id": "AU7jglhBRtGZ"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "meal_dict()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "A7bWuy0CShLG",
+        "outputId": "4a778069-94ea-4e98-937f-c66d3dae1160"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Welcome to the Recipe Finder!\n",
+            "Please enter a ingrdient you would like to have in your meal\n",
+            "You may also enter a special occasion, such as Christmas, for example\n",
+            "What would you like to cook with? vegetarian\n",
+            "Here are some recipes including vegetarian\n"
+          ]
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "{'falafel': 'https://www.allrecipes.com/recipes/23250/everyday-cooking/vegetarian/main-dishes/beans-and-peas/falafel/',\n",
+              " 'seitan': 'https://www.allrecipes.com/recipes/17624/everyday-cooking/vegetarian/protein/seitan/',\n",
+              " 'tempeh': 'https://www.allrecipes.com/recipes/16777/everyday-cooking/vegetarian/protein/tempeh/',\n",
+              " 'tofu': 'https://www.allrecipes.com/recipes/270/everyday-cooking/vegetarian/protein/tofu/',\n",
+              " 'tvp': 'https://www.allrecipes.com/recipes/17251/everyday-cooking/vegetarian/protein/tvp/',\n",
+              " 'vegetarian': 'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/'}"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 70
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def tester(n):\n",
+        "  list1 = duplicate_remover(n)\n",
+        "  list2 = extract_dish_name(n)\n",
+        "  food_dict = dict(zip(list2,list1))\n",
+        "  print(f'Here are some recipes including {n}')\n",
+        "  if n in food_dict:\n",
+        "    print(f'{n} is there, test passed!')\n",
+        "    return food_dict\n",
+        "  else:\n",
+        "    print(f'I cant find anything including {n}, Something is wrong')"
+      ],
+      "metadata": {
+        "id": "j7Z99xDTWtgf"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "tester('beef')"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "4_GO_sngXPKo",
+        "outputId": "73fb1265-8211-4841-f235-09c5fe2c24a0"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Here are some recipes including beef\n",
+            "beef is there, test passed!\n"
+          ]
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "{'beef': 'https://www.allrecipes.com/recipes/14730/soups-stews-and-chili/stews/beef/',\n",
+              " 'beef-stroganoff': 'https://www.allrecipes.com/recipes/17123/main-dish/beef/beef-stroganoff/',\n",
+              " 'tenderloin': 'https://www.allrecipes.com/recipes/469/meat-and-poultry/beef/tenderloin/',\n",
+              " 'corned-beef': 'https://www.allrecipes.com/recipes/472/main-dish/beef/corned-beef/',\n",
+              " 'filet-mignon': 'https://www.allrecipes.com/recipes/1024/meat-and-poultry/beef/steaks/filet-mignon/',\n",
+              " 'flank-steak': 'https://www.allrecipes.com/recipes/1023/meat-and-poultry/beef/steaks/flank-steak/',\n",
+              " 'flat-iron-steak': 'https://www.allrecipes.com/recipes/17641/meat-and-poultry/beef/steaks/flat-iron-steak/',\n",
+              " 'ground': 'https://www.allrecipes.com/recipes/471/meat-and-poultry/beef/ground/',\n",
+              " 'pot-roast': 'https://www.allrecipes.com/recipes/1469/main-dish/beef/pot-roast/',\n",
+              " 'rib-roast': 'https://www.allrecipes.com/recipes/1012/meat-and-poultry/beef/rib-roast/',\n",
+              " 'salisbury-steak': 'https://www.allrecipes.com/recipes/17656/main-dish/beef/salisbury-steak/',\n",
+              " 'swiss-steak': 'https://www.allrecipes.com/recipes/17320/main-dish/beef/swiss-steak/'}"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 64
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "tester('party')"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "q8G_rfasX7rR",
+        "outputId": "ee5b11a9-f2d4-4559-ed5b-56925dc9bdfe"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Here are some recipes including party\n",
+            "I cant find anything including party, Something is wrong\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
